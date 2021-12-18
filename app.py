@@ -8,7 +8,105 @@ app = Flask(__name__)
 url = 'api'
 pro = ts.pro_api('79b02307d33ca733aeac643f8d1551a9794607ba8cc905f313815494')
 
-#获取东方财富-行情中心-盘口异动数据
+
+# 乐咕乐股网-赚钱效应分析数据
+@app.route(f'/{url}/marketActivity', methods=['GET'])
+@cross_origin()
+def marketActivity():
+    result = aks.stock_market_activity_legu()
+    df = result.to_json(orient='records', force_ascii=False)
+    return df
+
+##############################################################################
+
+# 巨潮资讯-数据中心-新股数据-新股发行
+@app.route(f'/{url}/getNewStocks', methods=['GET'])
+@cross_origin()
+def getNewStocks():
+    stocks = aks.stock_new_ipo_cninfo()
+    df = stocks.to_json(orient='records', force_ascii=False)
+    return df
+
+##############################################################################
+
+# 巨潮资讯-数据中心-行业分析-行业市盈率
+# symbol="证监会行业分类"; choice of {"证监会行业分类", "国证行业分类"}
+# date="20210910"; 交易日
+@app.route(f'/{url}/industryPERatio', methods=['GET'])
+@cross_origin()
+def industryPERatio():
+    symbol = request.args.to_dict().get('symbol')
+    date = request.args.to_dict().get('date')
+    result = aks.stock_industry_pe_ratio_cninfo(symbol=symbol, date=date)
+    df = result.to_json(orient='records', force_ascii=False)
+    return df
+
+##############################################################################
+
+# 新浪财经-机构推荐池-股票评级记录
+@app.route(f'/{url}/instituteRecommend', methods=['GET'])
+@cross_origin()
+def instituteRecommend():
+    code = request.args.to_dict().get('code')
+    result = aks.stock_institute_recommend_detail(stock=code)
+    df = result.to_json(orient='records', force_ascii=False)
+    return df
+
+##############################################################################
+# 获取新浪财经-机构持股-机构持股一览表
+# quarter="20051"; 从 2005 年开始, {"一季报":1, "中报":2 "三季报":3 "年报":4}, e.g., "20191", 其中的 1 表示一季报; "20193", 其中的 3 表示三季报;
+@app.route(f'/{url}/instituteHold', methods=['GET'])
+@cross_origin()
+def instituteHold():
+    quarter = request.args.to_dict().get('quarter')
+    stocks = aks.stock_institute_hold(quarter=quarter)
+    df = stocks.to_json(orient='records', force_ascii=False)
+    return df
+
+##############################################################################
+
+# 北京证券交易所股票代码和简称数据
+@app.route(f'/{url}/getAllBJStocks', methods=['GET'])
+@cross_origin()
+def getAllBJStocks():
+    stocks = aks.stock_info_bj_name_code()
+    df = stocks.to_json(orient='records', force_ascii=False)
+    return df
+
+##############################################################################
+# 深证证券交易所股票代码和股票简称数据
+# indicator="A股列表"; choice of {"A股列表", "B股列表", "CDR列表", "AB股列表"}
+@app.route(f'/{url}/getAllSZStocks', methods=['GET'])
+@cross_origin()
+def getAllSZStocks():
+    indicator = request.args.to_dict().get('indicator')
+    stocks = aks.stock_info_sz_name_code(indicator=indicator)
+    df = stocks.to_json(orient='records', force_ascii=False)
+    return df
+
+##############################################################################
+# 上海证券交易所股票代码和简称数据
+# indicator="主板A股"; choice of {"主板A股", "主板B股", "科创板"}
+@app.route(f'/{url}/getAllSHStocks', methods=['GET'])
+@cross_origin()
+def getAllSHStocks():
+    indicator = request.args.to_dict().get('indicator')
+    stocks = aks.stock_info_sh_name_code(indicator=indicator)
+    df = stocks.to_json(orient='records', force_ascii=False)
+    return df
+
+##############################################################################
+# 沪深京 A 股股票代码和股票简称数据
+@app.route(f'/{url}/getAllStocks', methods=['GET'])
+@cross_origin()
+def getAllStocks():
+    stocks = aks.stock_info_a_code_name()
+    df = stocks.to_json(orient='records', force_ascii=False)
+    return df
+
+##############################################################################
+# 获取东方财富-行情中心-盘口异动数据
+# symbol="大笔买入"; choice of {'火箭发射', '快速反弹', '大笔买入', '封涨停板', '打开跌停板', '有大买盘', '竞价上涨', '高开5日线', '向上缺口', '60日新高', '60日大幅上涨', '加速下跌', '高台跳水', '大笔卖出', '封跌停板', '打开涨停板', '有大卖盘', '竞价下跌', '低开5日线', '向下缺口', '60日新低', '60日大幅下跌'}
 @app.route(f'/{url}/unusualChange', methods=['GET'])
 @cross_origin()
 def unusualChange():
