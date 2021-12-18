@@ -9,6 +9,28 @@ url = 'api'
 pro = ts.pro_api('79b02307d33ca733aeac643f8d1551a9794607ba8cc905f313815494')
 
 
+# 东方财富网-数据中心-特色数据-机构调研-机构调研统计
+# start_date="20210910"; 开始查询的时间
+@app.route(f'/{url}/organInvestigate', methods=['GET'])
+@cross_origin()
+def organInvestigate():
+    date = request.args.to_dict().get('date')
+    result = aks.stock_em_jgdy_tj(start_date=date)
+    df = result.to_json(orient='records', force_ascii=False)
+    return df
+
+##############################################################################
+# 东方财富网-数据中心-特色数据-机构调研-机构调研详细
+# start_date="20210910"; 开始查询的时间
+@app.route(f'/{url}/organInvestigateDetail', methods=['GET'])
+@cross_origin()
+def organInvestigateDetail():
+    date = request.args.to_dict().get('date')
+    result = aks.stock_em_jgdy_detail(start_date=date)
+    df = result.to_json(orient='records', force_ascii=False)
+    return df
+
+##############################################################################
 # 乐咕乐股网-赚钱效应分析数据
 @app.route(f'/{url}/marketActivity', methods=['GET'])
 @cross_origin()
