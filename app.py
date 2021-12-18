@@ -15,8 +15,15 @@ pro = ts.pro_api('79b02307d33ca733aeac643f8d1551a9794607ba8cc905f313815494')
 @cross_origin()
 def organInvestigate():
     date = request.args.to_dict().get('date')
+    if (not date):
+        date = '20211201'
     result = aks.stock_em_jgdy_tj(start_date=date)
-    df = result.to_json(orient='records', force_ascii=False)
+    result['code'] = result['代码']
+    result['name'] = result['名称']
+    result['institute_count'] = result['接待机构数量']
+    result['receive_date'] = result['接待日期']
+    data = result[['code', 'name', 'institute_count', 'receive_date']]
+    df = data.to_json(orient='records', force_ascii=False)
     return df
 
 ##############################################################################
