@@ -85,7 +85,14 @@ def industryPERatio():
 def instituteRecommend():
     code = request.args.to_dict().get('code')
     result = aks.stock_institute_recommend_detail(stock=code)
-    df = result.to_json(orient='records', force_ascii=False)
+    result['code'] = result['股票代码']
+    result['name'] = result['股票名称']
+    result['target_price'] = result['目标价']
+    result['grade'] = result['最新评级']
+    result['industry'] = result['行业']
+    result['date'] = result['评级日期']
+    data = result[['code', 'name', 'target_price', 'grade', 'industry', 'date']]
+    df = data.to_json(orient='records', force_ascii=False)
     return df
 
 ##############################################################################
@@ -117,7 +124,10 @@ def getAllBJStocks():
 def getAllSZStocks():
     indicator = request.args.to_dict().get('indicator')
     stocks = aks.stock_info_sz_name_code(indicator=indicator)
-    df = stocks.to_json(orient='records', force_ascii=False)
+    stocks['code'] = stocks['A股代码']
+    stocks['name'] = stocks['A股简称']
+    data = stocks[['code', 'name']]
+    df = data.to_json(orient='records', force_ascii=False)
     return df
 
 ##############################################################################
@@ -128,7 +138,10 @@ def getAllSZStocks():
 def getAllSHStocks():
     indicator = request.args.to_dict().get('indicator')
     stocks = aks.stock_info_sh_name_code(indicator=indicator)
-    df = stocks.to_json(orient='records', force_ascii=False)
+    stocks['code'] = stocks['公司代码']
+    stocks['name'] = stocks['公司简称']
+    data = stocks[['code', 'name']]
+    df = data.to_json(orient='records', force_ascii=False)
     return df
 
 ##############################################################################
