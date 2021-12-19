@@ -3,10 +3,17 @@ from flask_cors import cross_origin
 import tushare as ts
 import akshare as aks
 import json
+import time
 app = Flask(__name__)
 
 url = 'api'
 pro = ts.pro_api('79b02307d33ca733aeac643f8d1551a9794607ba8cc905f313815494')
+
+def timeStamp(x):
+    timeStamp = float(x)
+    timeArray = time.localtime(timeStamp)
+    otherStyleTime = time.strftime("%Y-%m-%d", timeArray)
+    return otherStyleTime
 
 
 # 东方财富网-数据中心-特色数据-机构调研-机构调研统计
@@ -21,7 +28,7 @@ def organInvestigate():
     result['code'] = result['代码']
     result['name'] = result['名称']
     result['institute_count'] = result['接待机构数量']
-    result['receive_date'] = result['接待日期']
+    result['receive_date'] = result['接待日期'].astype('str')
     data = result[['code', 'name', 'institute_count', 'receive_date']]
     df = data.to_json(orient='records', force_ascii=False)
     return df
