@@ -1,9 +1,11 @@
 from flask import Flask, request, url_for
 from flask_cors import cross_origin
+import pandas as pd
 import tushare as ts
 import akshare as aks
 import json
 import time
+import dbOperate
 app = Flask(__name__)
 
 url = 'api'
@@ -149,7 +151,10 @@ def getAllSHStocks():
 @app.route(f'/{url}/getAllStocks', methods=['GET'])
 @cross_origin()
 def getAllStocks():
-    stocks = aks.stock_info_a_code_name()
+    pageNum = int(request.args.to_dict().get('pageNum'))
+    pageSize = int(request.args.to_dict().get('pageSize'))
+    sql = f'select * from all_type_stocks_list limit {(pageNum-1)* pageSize},{pageNum*pageSize}'
+    stocks = pd.read_sql(sql, dbOperate.engine)
     df = stocks.to_json(orient='records', force_ascii=False)
     return df
 
