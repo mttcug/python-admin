@@ -13,7 +13,7 @@ db_user = 'mtt_db'
 db_passwd = 'Mtt676992'
 db_name = 'stock_db'
 
-engine = create_engine(f'mysql+pymysql://{db_user}:{db_passwd}@{db_host}:{db_port}/{db_name}')
+engine = create_engine(f'mysql+pymysql://{db_user}:{db_passwd}@{db_host}:{db_port}/{db_name}', pool_recycle=3).connect()
 
 # BackgroundScheduler
 scheduler = BackgroundScheduler()

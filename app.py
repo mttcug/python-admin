@@ -1,11 +1,14 @@
-from flask import Flask, request, url_for
+from flask import Flask, request, url_for, render_template
 from flask_cors import cross_origin
+import matplotlib.pyplot as plt
 import pandas as pd
 import tushare as ts
 import akshare as aks
 import json
 import time
-import dbOperate
+from io import BytesIO
+import base64
+# import dbOperate
 app = Flask(__name__)
 
 url = 'api'
@@ -17,7 +20,18 @@ def timeStamp(x):
     otherStyleTime = time.strftime("%Y-%m-%d", timeArray)
     return otherStyleTime
 
+# 东方财富网-数据中心-特色数据-机构调研-机构调研详细
+# start_date="20210910"; 开始查询的时间
+@app.route(f'/{url}/getNews', methods=['GET'])
+@cross_origin()
+def getNews():
+    result = aks.stock_zh_a_alerts_cls()
+    result['time'] = result['时间'].astype('str')
+    result['news'] = result['快讯信息']
+    df = result[['time', 'news']].head().to_json(orient='records', force_ascii=False)
+    return df
 
+#############################################################################
 # 东方财富网-数据中心-特色数据-机构调研-机构调研统计
 # start_date="20210910"; 开始查询的时间
 @app.route(f'/{url}/organInvestigate', methods=['GET'])
@@ -31,7 +45,9 @@ def organInvestigate():
     result['name'] = result['名称']
     result['institute_count'] = result['接待机构数量']
     result['receive_date'] = result['接待日期'].astype('str')
-    data = result[['code', 'name', 'institute_count', 'receive_date']]
+    _result = result[result['institute_count'] > 10]
+    _result.sort_values(by="institute_count",ascending=False)
+    data = _result[['code', 'name', 'institute_count', 'receive_date']]
     df = data.to_json(orient='records', force_ascii=False)
     return df
 
@@ -103,9 +119,19 @@ def instituteRecommend():
 @app.route(f'/{url}/instituteHold', methods=['GET'])
 @cross_origin()
 def instituteHold():
+    count = request.args.to_dict().get('count')
     quarter = request.args.to_dict().get('quarter')
-    stocks = aks.stock_institute_hold(quarter=quarter)
-    df = stocks.to_json(orient='records', force_ascii=False)
+    result = aks.stock_institute_hold(quarter=quarter)
+    result['code'] = result['证券代码']
+    result['name'] = result['证券简称']
+    result['institute_count'] = result['机构数']
+    result['institute_change'] = result['机构数变化']
+    result['hold_change'] = result['持股比例增幅']
+    result['institute_change_abs'] = result['机构数变化'].abs()
+    _result = result[result['institute_count'] > int(count)]
+    _result1 = _result.sort_values(by="institute_change_abs",ascending=False)
+    data = _result1[['code', 'name', 'institute_count', 'institute_change', 'hold_change']]
+    df = data.to_json(orient='records', force_ascii=False)
     return df
 
 ##############################################################################
@@ -153,7 +179,7 @@ def getAllSHStocks():
 def getAllStocks():
     pageNum = int(request.args.to_dict().get('pageNum'))
     pageSize = int(request.args.to_dict().get('pageSize'))
-    sql = f'select * from all_type_stocks_list limit {(pageNum-1)* pageSize},{pageNum*pageSize}'
+    sql = f'select * from all_type_stocks_list limit {(pageNum-1)* pageSize},{pageSize}'
     stocks = pd.read_sql(sql, dbOperate.engine)
     df = stocks.to_json(orient='records', force_ascii=False)
     return df
@@ -187,6 +213,7 @@ def predictProfit():
     df = predit.to_json(orient='records', force_ascii=False)
     return df
 
+#######################################################################################
 
 #######################################################################################
 # 同花顺-板块-概念板块-概念
@@ -230,7 +257,10 @@ def getTHStocksByConceptCode():
 @app.route(f'/{url}/getTHIndustry', methods=['GET'])
 @cross_origin()
 def getTHIndustry():
+    keyWord = request.args.to_dict().get('keyWord')
     thi = aks.stock_board_industry_name_ths()
+    if (keyWord):
+        thi = thi[thi['name'].str.contains(keyWord)]
     data = thi[['code', 'name']]
     df = data.to_json(orient='records', force_ascii=False)
     return df
